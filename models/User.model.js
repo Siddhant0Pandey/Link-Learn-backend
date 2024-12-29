@@ -13,6 +13,7 @@ const UserSchema = mongoose.Schema({
     type: String,
     required: true,
   },
+  salt: { type: String, required: true },
 });
 
 export const User = mongoose.model("User", UserSchema);
