@@ -1,10 +1,14 @@
 import express from "express";
 import crypto from "crypto";
 import { User } from "../models/User.model.js";
+import { generateToken } from "../middleware/jwt.js";
 
 const router = express.Router();
 
 function hashPassword(password, salt) {
+  if (!salt) {
+    throw new Error("Salt is required for hashing");
+  }
   return crypto.createHmac("sha256", salt).update(password).digest("hex");
 }
 
@@ -16,6 +20,7 @@ router.post("/register", async (req, res) => {
   try {
     const { name, username, password } = req.body;
 
+    // Validate inputs
     if (!name || !username || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -54,8 +59,14 @@ router.post("/login", async (req, res) => {
     }
 
     const existingUser = await User.findOne({ username });
+
     if (!existingUser) {
       return res.status(401).json({ message: "Incorrect username" });
+    }
+    console.log("Existing User:", existingUser);
+
+    if (!existingUser.salt) {
+      throw new Error("Salt is missing for this user");
     }
 
     const hashedPassword = hashPassword(password, existingUser.salt);
@@ -64,9 +75,18 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Incorrect password" });
     }
 
-    res.status(200).json({
+    const payload = {
+      username: existingUser.username,
+      id: existingUser._id,
+    };
+
+    const token = generateToken(payload);
+    console.log(token);
+
+    return res.status(200).json({
       message: "Login successful",
       user: { name: existingUser.name, username: existingUser.username },
+      token,
     });
   } catch (err) {
     console.error("Login error:", err);
