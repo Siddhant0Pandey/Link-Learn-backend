@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import cors from "cors";
 import "dotenv/config";
 import userRoute from "./routes/user.routes.js";
+import taskRoute from "./routes/task.routes.js";
 
 const PORT = process.env.PORT || 3000;
 const uri = process.env.DATABASE_URL;
@@ -14,7 +15,9 @@ app.use(express.json());
 //routes
 
 app.use("/", userRoute);
+app.use("/", taskRoute);
 
+// mongoose connection
 mongoose
   .connect(uri)
   .then(() => {
