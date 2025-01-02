@@ -4,11 +4,10 @@ import { jwtAuthMiddleware } from "../middleware/jwt.js";
 
 const router = express.Router();
 
-// Route to fetch tasks for the authenticated user
 router.get("/tasks", jwtAuthMiddleware, async (req, res) => {
   try {
-    const userId = req.user.id; // Get the user ID from the authenticated user info
-    const tasks = await Todo.find({ user: userId }); // Fetch tasks only for the logged-in user
+    const userId = req.user.id;
+    const tasks = await Todo.find({ user: userId });
     res.status(200).json({ tasks });
   } catch (err) {
     console.error(err);
@@ -16,13 +15,11 @@ router.get("/tasks", jwtAuthMiddleware, async (req, res) => {
   }
 });
 
-// Route to add a new task for the authenticated user
 router.post("/tasks", jwtAuthMiddleware, async (req, res) => {
   try {
     const { title, isCompleted } = req.body;
-    const userId = req.user.id; // Get the user ID from the authenticated user info
+    const userId = req.user.id;
 
-    // Create a new task and associate it with the logged-in user
     const newTask = await Todo.create({ title, isCompleted, user: userId });
     res.status(201).json({ task: newTask });
   } catch (err) {
@@ -31,13 +28,11 @@ router.post("/tasks", jwtAuthMiddleware, async (req, res) => {
   }
 });
 
-// Route to delete a task for the authenticated user
 router.delete("/tasks/:id", jwtAuthMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.user.id; // Get the user ID from the authenticated user info
+    const userId = req.user.id;
 
-    // Ensure the task belongs to the logged-in user
     const task = await Todo.findOneAndDelete({ _id: id, user: userId });
     if (!task) {
       return res
@@ -52,18 +47,16 @@ router.delete("/tasks/:id", jwtAuthMiddleware, async (req, res) => {
   }
 });
 
-// Route to update a task for the authenticated user
 router.put("/tasks/:id", jwtAuthMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const { isCompleted } = req.body;
-    const userId = req.user.id; // Get the user ID from the authenticated user info
+    const userId = req.user.id;
 
-    // Ensure the task belongs to the logged-in user
     const updatedTask = await Todo.findOneAndUpdate(
-      { _id: id, user: userId }, // Only update the task if it belongs to the logged-in user
+      { _id: id, user: userId },
       { isCompleted },
-      { new: true } // Return the updated task
+      { new: true }
     );
 
     if (!updatedTask) {
