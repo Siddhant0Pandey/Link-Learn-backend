@@ -4,6 +4,7 @@ import cors from "cors";
 import "dotenv/config";
 import userRoute from "./routes/user.routes.js";
 import taskRoute from "./routes/task.routes.js";
+import educationalRoute from "./routes/task.routes.js";
 
 const PORT = process.env.PORT || 3000;
 const uri = process.env.DATABASE_URL;
@@ -16,6 +17,7 @@ app.use(express.json());
 
 app.use("/", userRoute);
 app.use("/", taskRoute);
+app.use("/", educationalRoute);
 
 // mongoose connection
 mongoose
