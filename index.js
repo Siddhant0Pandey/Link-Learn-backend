@@ -4,7 +4,7 @@ import cors from "cors";
 import "dotenv/config";
 import userRoute from "./routes/user.routes.js";
 import taskRoute from "./routes/task.routes.js";
-import educationalRoute from "./routes/task.routes.js";
+import educationalRoute from "./routes/links.routes.js";
 
 const PORT = process.env.PORT || 3000;
 const uri = process.env.DATABASE_URL;
