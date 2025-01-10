@@ -50,13 +50,13 @@ router.delete("/tasks/:id", jwtAuthMiddleware, async (req, res) => {
 router.put("/tasks/:id", jwtAuthMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, isCompleted } = req.body; // Expect title and isCompleted to be updated
+    const { title, isCompleted } = req.body;
     const userId = req.user.id;
 
     const updatedTask = await Todo.findOneAndUpdate(
       { _id: id, user: userId },
-      { title, isCompleted }, // Ensure you update the title and isCompleted fields
-      { new: true } // Ensure the updated task is returned
+      { title, isCompleted },
+      { new: true }
     );
 
     if (!updatedTask) {
