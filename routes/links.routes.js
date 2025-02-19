@@ -9,32 +9,24 @@ const router = express.Router();
 
 // educational activity router
 
-router.get("/eduactivity", jwtAuthMiddleware, async (req, res) => {
+router.get("/eduactivity/link", jwtAuthMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
-
     const edulinks = await EducationalLink.find({ user: userId });
 
-    const eduShortcuts = await EduShortcut.find({ user: userId });
-
-    if (
-      (!edulinks || edulinks.length === 0) &&
-      (!eduShortcuts || eduShortcuts.length === 0)
-    ) {
+    if (!edulinks || edulinks.length === 0) {
       return res.status(404).json({ message: "No links found for the user" });
     }
 
-    res.status(200).json({
-      eduLink: edulinks || [],
-      eduShortcutLink: eduShortcuts || [],
-    });
+    res.status(200).json(edulinks); // Now returning the array directly
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to fetch the links" });
   }
 });
 
-router.post("/eduactivity", jwtAuthMiddleware, async (req, res) => {
+// Add a new educational link
+router.post("/eduactivity/link", jwtAuthMiddleware, async (req, res) => {
   try {
     const { title, url } = req.body;
     const userId = req.user.id;
@@ -48,40 +40,152 @@ router.post("/eduactivity", jwtAuthMiddleware, async (req, res) => {
       url,
       user: userId,
     });
-    const newEduShortcutLink = await EduShortcut.create({
-      title,
-      url,
-      user: userId,
-    });
-    res
-      .status(201)
-      .json({ eduLink: newEduLink, eduShortcutLink: newEduShortcutLink });
+
+    res.status(201).json({ eduLink: newEduLink });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to add the link" });
   }
 });
 
-router.delete("/eduactivity/:id", jwtAuthMiddleware, async (req, res) => {
+// Update an educational link
+router.put("/eduactivity/link/:id", jwtAuthMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, url } = req.body;
+    const userId = req.user.id;
+
+    const updatedEduLink = await EducationalLink.findOneAndUpdate(
+      { _id: id, user: userId },
+      { title, url },
+      { new: true }
+    );
+
+    if (!updatedEduLink) {
+      return res
+        .status(404)
+        .json({ message: "Educational link not found or unauthorized." });
+    }
+
+    res.status(200).json({ eduLink: updatedEduLink });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to update educational link." });
+  }
+});
+// get a educational shourtcut
+router.get("/eduactivity/shortcut", jwtAuthMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const edushortcut = await EduShortcut.find({ user: userId });
+
+    if (!edushortcut || edushortcut.length === 0) {
+      return res.status(404).json({ message: "No links found for the user" });
+    }
+
+    res.status(200).json(edushortcut); // Now returning the array directly
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch the links" });
+  }
+});
+
+// Add a new educational shortcut
+router.post("/eduactivity/shortcut", jwtAuthMiddleware, async (req, res) => {
+  try {
+    const { title, url } = req.body;
+    const userId = req.user.id;
+
+    if (!title || !url) {
+      return res.status(400).json({ message: "Title and URL are required" });
+    }
+
+    const newEduShortcut = await EduShortcut.create({
+      title,
+      url,
+      user: userId,
+    });
+
+    res.status(201).json({ eduShortcutLink: newEduShortcut });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to add the shortcut" });
+  }
+});
+
+// Update an educational shortcut
+router.put("/eduactivity/shortcut/:id", jwtAuthMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, url } = req.body;
+    const userId = req.user.id;
+
+    const updatedEduShortcut = await EduShortcut.findOneAndUpdate(
+      { _id: id, user: userId },
+      { title, url },
+      { new: true }
+    );
+
+    if (!updatedEduShortcut) {
+      return res
+        .status(404)
+        .json({ message: "Educational shortcut not found or unauthorized." });
+    }
+
+    res.status(200).json({ eduShortcutLink: updatedEduShortcut });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to update educational shortcut." });
+  }
+});
+
+// Delete an educational shortcut
+router.delete(
+  "/eduactivity/shortcut/:id",
+  jwtAuthMiddleware,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+
+      const deletedEduShortcut = await EduShortcut.findOneAndDelete({
+        _id: id,
+        user: userId,
+      });
+
+      if (!deletedEduShortcut) {
+        return res
+          .status(404)
+          .json({ message: "Educational shortcut not found" });
+      }
+
+      res.status(200).json({ message: "Shortcut deleted successfully!" });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Failed to delete the shortcut." });
+    }
+  }
+);
+
+// Delete an educational link
+router.delete("/eduactivity/link/:id", jwtAuthMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
 
-    const edulinks = await EducationalLink.findOneAndDelete({
+    const deletedEduLink = await EducationalLink.findOneAndDelete({
       _id: id,
       user: userId,
     });
-    const eduShortcutlinks = await EduShortcut.findOneAndDelete({
-      _id: id,
-      user: userId,
-    });
-    if (!edulinks || !eduShortcutlinks) {
-      return res.status(404).json({ message: "Links not found" });
+
+    if (!deletedEduLink) {
+      return res.status(404).json({ message: "Educational link not found" });
     }
-    res.status(200).json({ message: "Task deleted successfully!" });
+
+    res.status(200).json({ message: "Link deleted successfully!" });
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "failed to delete the task." });
+    console.error(err);
+    res.status(500).json({ message: "Failed to delete the link." });
   }
 });
 // entertianment avitivity router
