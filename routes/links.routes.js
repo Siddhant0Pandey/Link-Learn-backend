@@ -3,7 +3,7 @@ import { EducationalLink } from "../models/activities/EducationalLink.model.js";
 import { jwtAuthMiddleware } from "../middleware/jwt.js";
 import { EduShortcut } from "../models/activities/EduShortcutLink.model.js";
 import { EntShortcut } from "../models/activities/EntShortcutLink.model.js";
-import { EntertianmentLink } from "../models/activities/EntertainmentLink.model.js";
+import { EntertainmentLink } from "../models/activities/EntertainmentLink.model.js";
 
 const router = express.Router();
 
@@ -190,19 +190,17 @@ router.delete("/eduactivity/link/:id", jwtAuthMiddleware, async (req, res) => {
 });
 // entertianment avitivity router
 
-router.get("/entactivity", jwtAuthMiddleware, async (req, res) => {
+router.get("/entactivity/link", jwtAuthMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
     console.log("User ID from JWT:", userId);
-    const entlinks = await EntertianmentLink.find({ user: userId });
-    const entShortcuts = await EntShortcut.find({ user: userId });
-    if (
-      (!entlinks || entlinks.length === 0) &&
-      (!entShortcuts || entShortcuts.length === 0)
-    ) {
+    const entlinks = await EntertainmentLink.find({ user: userId });
+
+    if (!entlinks || entlinks.length === 0) {
       return res.status(404).json({ message: "No links found for the user" });
     }
-    res.status(200).json({ entLink: entlinks, entShortcutLink: entShortcuts });
+
+    res.status(200).json(entlinks);
   } catch (err) {
     console.log(err);
     res
@@ -211,7 +209,28 @@ router.get("/entactivity", jwtAuthMiddleware, async (req, res) => {
   }
 });
 
-router.post("/entactivity", jwtAuthMiddleware, async (req, res) => {
+router.get("/entactivity/shortcut", jwtAuthMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    console.log("User ID from JWT:", userId);
+    const entShortcuts = await EntShortcut.find({ user: userId });
+
+    if (!entShortcuts || entShortcuts.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No shortcuts found for the user" });
+    }
+
+    res.status(200).json(entShortcuts);
+  } catch (err) {
+    console.log(err);
+    res
+      .status(500)
+      .json({ message: "Failed to fetch the entertainment shortcuts" });
+  }
+});
+
+router.post("/entactivity/link", jwtAuthMiddleware, async (req, res) => {
   try {
     const { title, url } = req.body;
     const userId = req.user.id;
@@ -220,46 +239,79 @@ router.post("/entactivity", jwtAuthMiddleware, async (req, res) => {
       return res.status(400).json({ message: "Title and URL are required" });
     }
 
-    const newEntLink = await EntertianmentLink.create({
+    const newEntLink = await EntertainmentLink.create({
       title,
       url,
       user: userId,
     });
-    const newEntShortcutLink = await EntShortcut.create({
-      title,
-      url,
-      user: userId,
-    });
-    res
-      .status(201)
-      .json({ entLink: newEntLink, entShortcutLink: newEntShortcutLink });
+    res.status(201).json(newEntLink);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to add the link" });
   }
 });
 
-router.delete("/entactivity/:id", jwtAuthMiddleware, async (req, res) => {
+router.post("/entactivity/shortcut", jwtAuthMiddleware, async (req, res) => {
+  try {
+    const { title, url } = req.body;
+    const userId = req.user.id;
+
+    if (!title || !url) {
+      return res.status(400).json({ message: "Title and URL are required" });
+    }
+
+    const newEntShortcut = await EntShortcut.create({
+      title,
+      url,
+      user: userId,
+    });
+    res.status(201).json(newEntShortcut);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to add the shortcut" });
+  }
+});
+
+router.delete("/entactivity/link/:id", jwtAuthMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
 
-    const entlinks = await EntertianmentLink.findOneAndDelete({
+    const entLink = await EntertainmentLink.findOneAndDelete({
       _id: id,
       user: userId,
     });
-    const entShortcutlinks = await EntShortcut.findOneAndDelete({
-      _id: id,
-      user: userId,
-    });
-    if (!entlinks || !entShortcutlinks) {
-      return res.status(404).json({ message: "Links not found" });
+    if (!entLink) {
+      return res.status(404).json({ message: "Link not found" });
     }
-    res.status(200).json({ message: "Task deleted successfully!" });
+    res.status(200).json({ message: "Link deleted successfully!" });
   } catch (err) {
     console.log(err);
-    res.status(500).json({ message: "failed to delete the task." });
+    res.status(500).json({ message: "Failed to delete the link." });
   }
 });
+
+router.delete(
+  "/entactivity/shortcut/:id",
+  jwtAuthMiddleware,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+
+      const entShortcut = await EntShortcut.findOneAndDelete({
+        _id: id,
+        user: userId,
+      });
+      if (!entShortcut) {
+        return res.status(404).json({ message: "Shortcut not found" });
+      }
+      res.status(200).json({ message: "Shortcut deleted successfully!" });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ message: "Failed to delete the shortcut." });
+    }
+  }
+);
 
 export default router;
