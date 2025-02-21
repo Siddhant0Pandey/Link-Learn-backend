@@ -13,7 +13,7 @@ const entertainmentlinkSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const EntertianmentLink = mongoose.model(
-  "EntertianmentLink",
+export const EntertainmentLink = mongoose.model(
+  "EntertainmentLink",
   entertainmentlinkSchema
 );
