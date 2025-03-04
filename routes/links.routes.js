@@ -18,7 +18,7 @@ router.get("/eduactivity/link", jwtAuthMiddleware, async (req, res) => {
       return res.status(404).json({ message: "No links found for the user" });
     }
 
-    res.status(200).json(edulinks); // Now returning the array directly
+    res.status(200).json(edulinks);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to fetch the links" });
@@ -28,23 +28,36 @@ router.get("/eduactivity/link", jwtAuthMiddleware, async (req, res) => {
 // Add a new educational link
 router.post("/eduactivity/link", jwtAuthMiddleware, async (req, res) => {
   try {
-    const { title, url } = req.body;
+    const { title, url, timeSpent } = req.body;
     const userId = req.user.id;
+    console.log("req body: ", req.body);
 
     if (!title || !url) {
       return res.status(400).json({ message: "Title and URL are required" });
     }
 
-    const newEduLink = await EducationalLink.create({
-      title,
-      url,
-      user: userId,
-    });
+    let existingEduLink = await EducationalLink.findOne({ url, user: userId });
 
-    res.status(201).json({ eduLink: newEduLink });
+    if (existingEduLink) {
+      existingEduLink.timeSpent += timeSpent;
+      existingEduLink.updatedAt = new Date();
+      await existingEduLink.save();
+      return res
+        .status(200)
+        .json({ message: "Time updated", eduLink: existingEduLink });
+    } else {
+      const newEduLink = await EducationalLink.create({
+        title,
+        url,
+        user: userId,
+        timeSpent,
+      });
+
+      return res.status(201).json({ eduLink: newEduLink });
+    }
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Failed to add the link" });
+    res.status(500).json({ message: "Failed to add/update the link" });
   }
 });
 
@@ -83,7 +96,7 @@ router.get("/eduactivity/shortcut", jwtAuthMiddleware, async (req, res) => {
       return res.status(404).json({ message: "No links found for the user" });
     }
 
-    res.status(200).json(edushortcut); // Now returning the array directly
+    res.status(200).json(edushortcut);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to fetch the links" });
@@ -232,19 +245,36 @@ router.get("/entactivity/shortcut", jwtAuthMiddleware, async (req, res) => {
 
 router.post("/entactivity/link", jwtAuthMiddleware, async (req, res) => {
   try {
-    const { title, url } = req.body;
+    const { title, url, timeSpent } = req.body;
     const userId = req.user.id;
+    console.log("req body: ", req.body);
 
     if (!title || !url) {
       return res.status(400).json({ message: "Title and URL are required" });
     }
 
-    const newEntLink = await EntertainmentLink.create({
-      title,
+    let existingEntLink = await EntertainmentLink.findOne({
       url,
       user: userId,
     });
-    res.status(201).json(newEntLink);
+
+    if (existingEduLink) {
+      existingEduLink.timeSpent += timeSpent;
+      existingEduLink.updatedAt = new Date();
+      await existingEduLink.save();
+      return res
+        .status(200)
+        .json({ message: "Time updated", eduLink: existingEntLink });
+    } else {
+      const newEntLink = await EntertainmentLink.create({
+        title,
+        url,
+        user: userId,
+        timeSpent,
+      });
+
+      return res.status(201).json({ eduLink: newEntLink });
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to add the link" });
@@ -313,5 +343,57 @@ router.delete(
     }
   }
 );
+
+router.put("/entactivity/link/:id", jwtAuthMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, url } = req.body;
+    const userId = req.user.id;
+
+    const updatedEntLink = await EntertainmentLink.findOneAndUpdate(
+      { _id: id, user: userId },
+      { title, url },
+      { new: true }
+    );
+
+    if (!updatedEntLink) {
+      return res
+        .status(404)
+        .json({ message: "Entertainment link not found or unauthorized." });
+    }
+
+    res.status(200).json({ entLink: updatedEntLink });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to update entertainment link." });
+  }
+});
+
+router.put("/entactivity/shortcut/:id", jwtAuthMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, url } = req.body;
+    const userId = req.user.id;
+
+    const updatedEntShortcut = await EntShortcut.findOneAndUpdate(
+      { _id: id, user: userId },
+      { title, url },
+      { new: true }
+    );
+
+    if (!updatedEntShortcut) {
+      return res
+        .status(404)
+        .json({ message: "Entertainment shortcut not found or unauthorized." });
+    }
+
+    res.status(200).json({ entShortcutLink: updatedEntShortcut });
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ message: "Failed to update entertainment shortcut." });
+  }
+});
 
 export default router;
