@@ -258,10 +258,10 @@ router.post("/entactivity/link", jwtAuthMiddleware, async (req, res) => {
       user: userId,
     });
 
-    if (existingEduLink) {
-      existingEduLink.timeSpent += timeSpent;
-      existingEduLink.updatedAt = new Date();
-      await existingEduLink.save();
+    if (existingEntLink) {
+      existingEntLink.timeSpent += timeSpent;
+      existingEntLink.updatedAt = new Date();
+      await existingEntLink.save();
       return res
         .status(200)
         .json({ message: "Time updated", eduLink: existingEntLink });
@@ -273,7 +273,7 @@ router.post("/entactivity/link", jwtAuthMiddleware, async (req, res) => {
         timeSpent,
       });
 
-      return res.status(201).json({ eduLink: newEntLink });
+      return res.status(201).json({ entLink: newEntLink });
     }
   } catch (err) {
     console.error(err);

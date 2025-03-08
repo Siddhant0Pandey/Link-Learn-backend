@@ -20,7 +20,6 @@ router.post("/register", async (req, res) => {
   try {
     const { name, username, password } = req.body;
 
-    // Validate inputs
     if (!name || !username || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
